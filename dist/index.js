@@ -9794,6 +9794,18 @@ class XML {
       return input;
     return Object.fromEntries(Object.entries(input).filter(([key]) => !key.includes("_declaration")).map(([key, value]) => [key, this.cleanJson(value)]));
   }
+  static jsonToXml(json) {
+    const convert = (obj, indent = "") => Object.entries(obj).map(([key, value]) => Array.isArray(value) ? value.map((item) => `
+${indent}<${key}>${convert(item, indent + "  ")}
+${indent}</${key}>`).join("") : typeof value === "object" && value !== null ? `
+${indent}<${key}>${convert(value, indent + "  ")}
+${indent}</${key}>` : `
+${indent}<${key}>${value}</${key}>`).join("");
+    const rootKey = Object.keys(json)[0];
+    return `<${rootKey}>
+${convert(json[rootKey]).trim()}
+</${rootKey}>`;
+  }
 }
 var XML_default = XML;
 
@@ -9877,6 +9889,10 @@ class AWSSignatureV4 {
             }
           }
           options.body = formData;
+          delete headers["content-type"];
+          break;
+        case "application/xml":
+          options.body = XML_default.jsonToXml(params);
           delete headers["content-type"];
           break;
       }
@@ -10032,7 +10048,23 @@ class S3Operations {
     const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
     return this.awssignaturev4.call("DELETE", uri, headers, {});
   }
-  async completeMultipartUpload() {
+  async completeMultipartUpload(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/" + Req.Key + "?uploadId=" + Req.UploadId);
+    const payload = {
+      CompleteMultipartUpload: {
+        Part: []
+      }
+    };
+    if (Req.Parts) {
+      for (const value of Req.Parts) {
+        payload.CompleteMultipartUpload.Part.push(value);
+      }
+    }
+    const headers = {
+      "content-type": "application/xml",
+      ...AWSSignatureV4_default.replaceNegatif(Req.Headers)
+    };
+    return this.awssignaturev4.call("POST", uri, headers, payload);
   }
   async copyObject(Req) {
     const target = Req.TargetBucket + "/" + Req.TargetKey;
@@ -10059,7 +10091,10 @@ class S3Operations {
     const payload = Req.Configuration;
     return this.awssignaturev4.call("POST", uri, headers, payload);
   }
-  async createMultipartUpload() {
+  async createMultipartUpload(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/" + Req.Key + "?uploads");
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("POST", uri, headers);
   }
   async createSession(Req) {
     const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?session");
@@ -10071,27 +10106,60 @@ class S3Operations {
     const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
     return this.awssignaturev4.call("DELETE", uri, headers, {});
   }
-  async deleteBucketAnalyticsConfiguration() {
+  async deleteBucketAnalyticsConfiguration(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?analytics&id=" + Req.Id);
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("DELETE", uri, headers, {});
   }
-  async deleteBucketCors() {
+  async deleteBucketCors(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?cors");
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("DELETE", uri, headers, {});
   }
-  async deleteBucketEncryption() {
+  async deleteBucketEncryption(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?encryption");
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("DELETE", uri, headers, {});
   }
-  async deleteBucketIntelligentTieringConfiguration() {
+  async deleteBucketIntelligentTieringConfiguration(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?intelligent-tiering&id=" + Req.Id);
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("DELETE", uri, headers, {});
   }
-  async deleteBucketInventoryConfiguration() {
+  async deleteBucketInventoryConfiguration(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?inventory&id=" + Req.Id);
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("DELETE", uri, headers, {});
   }
-  async deleteBucketLifecycle() {
+  async deleteBucketLifecycle(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?lifecycle");
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("DELETE", uri, headers, {});
   }
-  async deleteBucketMetadataTableConfiguration() {
+  async deleteBucketMetadataTableConfiguration(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?metadataTable");
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("DELETE", uri, headers, {});
   }
-  async deleteBucketMetricsConfiguration() {
+  async deleteBucketMetricsConfiguration(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?metrics&id=" + Req.Id);
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("DELETE", uri, headers, {});
   }
-  async deleteBucketOwnershipControls() {
+  async deleteBucketOwnershipControls(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?ownershipControls");
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("DELETE", uri, headers, {});
   }
-  async deleteBucketPolicy() {
+  async deleteBucketPolicy(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?policy");
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("DELETE", uri, headers, {});
   }
-  async deleteBucketReplication() {
+  async deleteBucketReplication(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?replication");
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("DELETE", uri, headers, {});
   }
   async deleteBucketTagging(Req) {
     const uri = new URL(this.endpoint);
@@ -10099,7 +10167,10 @@ class S3Operations {
     const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
     return this.awssignaturev4.call("DELETE", uri, headers, {});
   }
-  async deleteBucketWebsite() {
+  async deleteBucketWebsite(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?website");
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("DELETE", uri, headers, {});
   }
   async deleteObject(Req) {
     const uri = new URL(this.endpoint);
@@ -10110,43 +10181,117 @@ class S3Operations {
     const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
     return this.awssignaturev4.call("DELETE", uri, headers, {});
   }
-  async deleteObjects() {
+  async deleteObjects(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?delete");
+    let payload = {
+      Delete: {
+        Object: []
+      }
+    };
+    for (const object of Object.values(Req.Objects)) {
+      payload.Delete.Object.push(object);
+    }
+    if (Req.Quiet !== undefined) {
+      payload.Delete.Quiet = Req.Quiet;
+    }
+    const headers = {
+      "content-type": "application/xml",
+      ...AWSSignatureV4_default.replaceNegatif(Req.Headers)
+    };
+    return this.awssignaturev4.call("POST", uri, headers, payload);
   }
-  async deleteObjectTagging() {
+  async deleteObjectTagging(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/" + Req.Key + "?tagging");
+    if (Req.VersionId !== undefined) {
+      uri.searchParams.append("versionId", Req.VersionId);
+    }
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("DELETE", uri, headers, {});
   }
-  async deletePublicAccessBlock() {
+  async deletePublicAccessBlock(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?publicAccessBlock");
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("DELETE", uri, headers, {});
   }
-  async getBucketAccelerateConfiguration() {
+  async getBucketAccelerateConfiguration(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?accelerate");
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, {});
   }
-  async getBucketAcl() {
+  async getBucketAcl(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?acl");
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, {});
   }
-  async getBucketAnalyticsConfiguration() {
+  async getBucketAnalyticsConfiguration(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?analytics&id=" + Req.Id);
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, {});
   }
-  async getBucketCors() {
+  async getBucketCors(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?cors");
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, {});
   }
-  async getBucketEncryption() {
+  async getBucketEncryption(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?encryption");
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, {});
   }
-  async getBucketIntelligentTieringConfiguration() {
+  async getBucketIntelligentTieringConfiguration(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?intelligent-tiering&id=" + Req.Id);
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, {});
   }
-  async getBucketInventoryConfiguration() {
+  async getBucketInventoryConfiguration(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?inventory&id=" + Req.Id);
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, {});
   }
-  async getBucketLifecycle() {
+  async getBucketLifecycle(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?lifecycle");
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, {});
   }
-  async getBucketLifecycleConfiguration() {
+  async getBucketLifecycleConfiguration(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?lifecycle");
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, {});
   }
-  async getBucketLocation() {
+  async getBucketLocation(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?location");
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, {});
   }
-  async getBucketLogging() {
+  async getBucketLogging(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?logging");
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, {});
   }
-  async getBucketMetadataTableConfiguration() {
+  async getBucketMetadataTableConfiguration(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?metadataTable");
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, {});
   }
-  async getBucketMetricsConfiguration() {
+  async getBucketMetricsConfiguration(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?metrics&id=" + Req.Id);
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, {});
   }
-  async getBucketNotification() {
+  async getBucketNotification(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?notification");
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, {});
   }
-  async getBucketNotificationConfiguration() {
+  async getBucketNotificationConfiguration(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?notification");
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, {});
   }
-  async getBucketOwnershipControls() {
+  async getBucketOwnershipControls(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?ownershipControls");
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, {});
   }
   async getBucketPolicy(Req) {
     const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?policy");
@@ -10156,17 +10301,35 @@ class S3Operations {
     };
     return this.awssignaturev4.call("GET", uri, headers, {});
   }
-  async getBucketPolicyStatus() {
+  async getBucketPolicyStatus(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?policyStatus");
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, {});
   }
-  async getBucketReplication() {
+  async getBucketReplication(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?replication");
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, {});
   }
-  async getBucketRequestPayment() {
+  async getBucketRequestPayment(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?requestPayment");
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, {});
   }
-  async getBucketTagging() {
+  async getBucketTagging(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?tagging");
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, {});
   }
-  async getBucketVersioning() {
+  async getBucketVersioning(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?versioning");
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, {});
   }
-  async getBucketWebsite() {
+  async getBucketWebsite(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?website");
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, {});
   }
   async getObject(Req) {
     const uri = new URL(this.endpoint);
@@ -10174,15 +10337,42 @@ class S3Operations {
     const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
     return this.awssignaturev4.call("GET", uri, headers, {});
   }
-  async getObjectAcl() {
+  async getObjectAcl(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/" + Req.Key + "?acl");
+    if (Req.VersionId !== undefined) {
+      uri.searchParams.append("versionId", Req.VersionId);
+    }
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, {});
   }
-  async getObjectAttributes() {
+  async getObjectAttributes(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/" + Req.Key + "?attributes");
+    if (Req.VersionId !== undefined) {
+      uri.searchParams.append("versionId", Req.VersionId);
+    }
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, {});
   }
-  async getObjectLegalHold() {
+  async getObjectLegalHold(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/" + Req.Key + "?legal-hold");
+    if (Req.VersionId !== undefined) {
+      uri.searchParams.append("versionId", Req.VersionId);
+    }
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, {});
   }
-  async getObjectLockConfiguration() {
+  async getObjectLockConfiguration(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?object-lock");
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, {});
   }
-  async getObjectRetention() {
+  async getObjectRetention(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/" + Req.Key + "?retention");
+    if (Req.VersionId !== undefined) {
+      uri.searchParams.append("versionId", Req.VersionId);
+    }
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, {});
   }
   async getObjectTagging(Req) {
     const uri = new URL(this.endpoint + "/" + Req.Bucket + "/" + Req.Key + "?tagging");
@@ -10193,9 +10383,15 @@ class S3Operations {
     const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
     return this.awssignaturev4.call("GET", uri, headers, payload);
   }
-  async getObjectTorrent() {
+  async getObjectTorrent(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/" + Req.Key + "?torrent");
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, {});
   }
-  async getPublicAccessBlock() {
+  async getPublicAccessBlock(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?publicAccessBlock");
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, {});
   }
   async headBucket(Req) {
     const uri = new URL(this.endpoint);
@@ -10236,22 +10432,78 @@ class S3Operations {
     const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
     return this.awssignaturev4.call("HEAD", uri, headers);
   }
-  async listBucketAnalyticsConfigurations() {
+  async listBucketAnalyticsConfigurations(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/analytics");
+    if (Req.ContinuationToken !== undefined) {
+      uri.searchParams.append("continuation-token", Req.ContinuationToken);
+    }
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, {});
   }
-  async listBucketIntelligentTieringConfigurations() {
+  async listBucketIntelligentTieringConfigurations(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/intelligent-tiering");
+    if (Req.ContinuationToken !== undefined) {
+      uri.searchParams.append("continuation-token", Req.ContinuationToken);
+    }
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, {});
   }
-  async listBucketInventoryConfigurations() {
+  async listBucketInventoryConfigurations(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/inventory");
+    if (Req.ContinuationToken !== undefined) {
+      uri.searchParams.append("continuation-token", Req.ContinuationToken);
+    }
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, {});
   }
-  async listBucketMetricsConfigurations() {
+  async listBucketMetricsConfigurations(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/metrics");
+    if (Req.ContinuationToken !== undefined) {
+      uri.searchParams.append("continuation-token", Req.ContinuationToken);
+    }
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, {});
   }
   async listBuckets(Req) {
     const uri = new URL(this.endpoint);
     const headers = AWSSignatureV4_default.replaceNegatif(Req?.Headers);
     return this.awssignaturev4.call("GET", uri, headers, {});
   }
-  async listDirectoryBuckets() {
+  async listDirectoryBuckets(Req) {
+    const uri = new URL(this.endpoint);
+    let payload = {};
+    if (Req.ContinuationToken !== undefined) {
+      payload["continuation-token"] = Req.ContinuationToken;
+    }
+    if (Req.MaxDirectoryBuckets !== undefined) {
+      payload["max-directory-buckets"] = Req.MaxDirectoryBuckets;
+    }
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, payload);
   }
-  async listMultipartUploads() {
+  async listMultipartUploads(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?uploads");
+    let payload = {};
+    if (Req.Delimiter !== undefined) {
+      payload["delimiter"] = Req.Delimiter;
+    }
+    if (Req.EncodingType !== undefined) {
+      payload["encoding-type"] = Req.EncodingType;
+    }
+    if (Req.KeyMarker !== undefined) {
+      payload["key-marker"] = Req.KeyMarker;
+    }
+    if (Req.MaxUploads !== undefined) {
+      payload["max-uploads"] = Req.MaxUploads;
+    }
+    if (Req.Prefix !== undefined) {
+      payload["prefix"] = Req.Prefix;
+    }
+    if (Req.UploadIdMarker !== undefined) {
+      payload["upload-id-marker"] = Req.UploadIdMarker;
+    }
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, payload);
   }
   async listObjects() {
     console.warn("listObjects() is deprecated. Please use listObjectsV2() instead.");
@@ -10310,7 +10562,20 @@ class S3Operations {
     const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
     return this.awssignaturev4.call("GET", uri, headers, payload);
   }
-  async listParts() {
+  async listParts(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/" + Req.Key);
+    const payload = {};
+    if (Req.UploadId !== undefined) {
+      payload["uploadId"] = Req.UploadId;
+    }
+    if (Req.MaxParts !== undefined) {
+      payload["max-parts"] = Req.MaxParts;
+    }
+    if (Req.PartNumberMarker !== undefined) {
+      payload["part-number-marker"] = Req.PartNumberMarker;
+    }
+    const headers = AWSSignatureV4_default.replaceNegatif(Req.Headers);
+    return this.awssignaturev4.call("GET", uri, headers, payload);
   }
   async putBucketAccelerateConfiguration() {
   }
@@ -10346,11 +10611,65 @@ class S3Operations {
   }
   async putBucketRequestPayment() {
   }
-  async putBucketTagging() {
+  async putBucketTagging(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?tagging");
+    let payload = {
+      Tagging: {
+        TagSet: {
+          Tag: Req.Tagging.TagSet
+        }
+      }
+    };
+    const headers = {
+      "content-type": "application/xml",
+      ...AWSSignatureV4_default.replaceNegatif(Req.Headers)
+    };
+    return this.awssignaturev4.call("PUT", uri, headers, payload);
   }
-  async putBucketVersioning() {
+  async putBucketVersioning(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "?versioning");
+    const payload = {
+      VersioningConfiguration: {}
+    };
+    if (Req.Status) {
+      payload.VersioningConfiguration["Status"] = Req.Status;
+    }
+    if (Req.MFADelete !== undefined) {
+      payload.VersioningConfiguration["MFADelete"] = Req.MFADelete;
+    }
+    const headers = {
+      "content-type": "application/xml",
+      ...AWSSignatureV4_default.replaceNegatif(Req.Headers)
+    };
+    return this.awssignaturev4.call("PUT", uri, headers, payload);
   }
-  async putBucketWebsite() {
+  async putBucketWebsite(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?website");
+    let payload = {
+      WebsiteConfiguration: {}
+    };
+    if (Req.ErrorDocument !== undefined && typeof payload.WebsiteConfiguration.ErrorDocument === "undefined") {
+      payload.WebsiteConfiguration.ErrorDocument = Req.ErrorDocument;
+    }
+    if (Req.IndexDocument !== undefined && typeof payload.WebsiteConfiguration.IndexDocument === "undefined") {
+      payload.WebsiteConfiguration.IndexDocument = Req.IndexDocument;
+    }
+    if (Req.RedirectAllRequestsTo !== undefined && typeof payload.WebsiteConfiguration.RedirectAllRequestsTo === "undefined") {
+      payload.WebsiteConfiguration.RedirectAllRequestsTo = Req.RedirectAllRequestsTo;
+    }
+    if (Req.RoutingRules !== undefined && typeof payload.WebsiteConfiguration.RoutingRules === "undefined") {
+      payload.WebsiteConfiguration.RoutingRules = {
+        RoutingRule: []
+      };
+      for (const key of Req.RoutingRules) {
+        payload.WebsiteConfiguration.RoutingRules.RoutingRule.push(key);
+      }
+    }
+    const headers = {
+      "content-type": "application/xml",
+      ...AWSSignatureV4_default.replaceNegatif(Req.Headers)
+    };
+    return this.awssignaturev4.call("PUT", uri, headers, payload);
   }
   async putObject(Req) {
     const uri = new URL(this.endpoint);
@@ -10378,13 +10697,92 @@ class S3Operations {
   }
   async restoreObject() {
   }
-  async selectObjectContent() {
+  async selectObjectContent(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/" + Req.Key + "?select&select-type=2");
+    let payload = {
+      SelectObjectContentRequest: {
+        Expression: Req.Expression,
+        ExpressionType: Req.ExpressionType,
+        InputSerialization: Req.InputSerialization,
+        OutputSerialization: Req.OutputSerialization
+      }
+    };
+    if (Req.RequestProgress !== undefined && typeof payload.SelectObjectContentRequest.RequestProgress === "undefined") {
+      payload.SelectObjectContentRequest.RequestProgress = Req.RequestProgress;
+    }
+    if (Req.ScanRange !== undefined && typeof payload.SelectObjectContentRequest.ScanRange === "undefined") {
+      if (Req.ScanRange.End !== undefined) {
+        payload.SelectObjectContentRequest.ScanRange = {
+          End: Req.ScanRange.End
+        };
+      }
+      if (Req.ScanRange.Start !== undefined) {
+        payload.SelectObjectContentRequest.ScanRange = {
+          Start: Req.ScanRange.Start
+        };
+      }
+      if (Req.ScanRange.End !== undefined && Req.ScanRange.Start !== undefined) {
+        payload.SelectObjectContentRequest.ScanRange = Req.ScanRange;
+      }
+    }
+    const headers = {
+      "content-type": "application/xml",
+      ...AWSSignatureV4_default.replaceNegatif(Req.Headers)
+    };
+    return this.awssignaturev4.call("POST", uri, headers, payload);
   }
-  async uploadPart() {
+  async uploadPart(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/" + Req.Key);
+    if (Req.PartNumber !== undefined) {
+      uri.searchParams.append("partNumber", Req.PartNumber);
+    }
+    if (Req.UploadId !== undefined) {
+      uri.searchParams.append("uploadId", Req.UploadId);
+    }
+    const payload = {};
+    if (Req.Body !== undefined) {
+      payload["file"] = InputFile_default.fromBuffer(Req.Body, Req.Key);
+    }
+    const headers = {
+      "content-type": "multipart/form-data",
+      ...AWSSignatureV4_default.replaceNegatif(Req.Headers)
+    };
+    return this.awssignaturev4.chunkedUpload("PUT", uri, headers, payload);
   }
-  async uploadPartCopy() {
+  async uploadPartCopy(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/" + Req.Key);
+    if (Req.PartNumber !== undefined) {
+      uri.searchParams.append("partNumber", Req.PartNumber);
+    }
+    if (Req.UploadId !== undefined) {
+      uri.searchParams.append("uploadId", Req.UploadId);
+    }
+    if (Req.CopySource === undefined) {
+      throw new Error("Copy Source not undefined");
+    }
+    const headers = {
+      "x-amz-copy-source": Req.CopySource,
+      ...AWSSignatureV4_default.replaceNegatif(Req.Headers)
+    };
+    return this.awssignaturev4.call("PUT", uri, headers, {});
   }
-  async writeGetObjectResponse() {
+  async writeGetObjectResponse(Req) {
+    const uri = new URL(this.endpoint + "/WriteGetObjectResponse");
+    const headers = {
+      "content-type": "multipart/form-data",
+      ...AWSSignatureV4_default.replaceNegatif(Req.Headers)
+    };
+    if (Req.RequestRoute !== undefined) {
+      headers["x-amz-request-route"] = Req.RequestRoute;
+    }
+    if (Req.RequestToken !== undefined) {
+      headers["x-amz-request-token"] = Req.RequestToken;
+    }
+    const payload = {};
+    if (Req.Body !== undefined && Req.KeyBody !== undefined) {
+      payload["file"] = InputFile_default.fromBuffer(Req.Body, Req.KeyBody);
+    }
+    return this.awssignaturev4.chunkedUpload("POST", uri, headers, payload);
   }
   async presign(Req) {
     const uri = new URL(this.endpoint);

@@ -1,6 +1,6 @@
 {
   "name": "@khalis_afkari/awssignaturev4",
-  "version": "1.0.6",
+  "version": "1.0.10",
   "type": "module",
   "main": "./index.ts",
   "scripts": {

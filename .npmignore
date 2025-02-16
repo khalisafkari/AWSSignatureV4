@@ -2,3 +2,5 @@ node_modules
 .git
 .github
 src/client.ts
+github.mp4
+.env
