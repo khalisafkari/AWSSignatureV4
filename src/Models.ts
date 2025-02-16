@@ -1616,6 +1616,34 @@ export namespace Models {
             Headers?: Record<string, string>;
         }
 
+        /**
+         * Interface for adding or replacing the tagging configuration of a bucket using Amazon S3 PutBucketTagging API.
+         *
+         * Reference: https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutBucketTagging.html
+         */
+        export interface putBucketTagging {
+            /**
+             * The name of the bucket for which to set the tagging configuration.
+             */
+            Bucket: string;
+
+            /**
+             * The list of tags to be applied to the bucket.
+             */
+            Tagging: {
+                TagSet: Array<{
+                    Key: string;
+                    Value: string;
+                }>;
+            };
+
+            /**
+             * Additional headers that can be sent in the request.
+             */
+            Headers?: Record<string, string>;
+        }
+
+
 
         /**
          * Interface for generating a presigned URL using Amazon S3.

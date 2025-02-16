@@ -1,7 +1,7 @@
 import AWSSignatureV4, { type AWSSignatureV4Context } from "./AWSSignatureV4";
 import InputFile from "./InputFile.ts";
 import type { Models } from "./Models.ts";
-// import XML from "./XML.ts";
+import XML from "./XML.ts";
 
 
 export class S3Operations {
@@ -724,7 +724,32 @@ export class S3Operations {
     async putBucketPolicy() { }
     async putBucketReplication() { }
     async putBucketRequestPayment() { }
-    async putBucketTagging() { }
+
+    async putBucketTagging(Req: Models.Request.putBucketTagging) {
+        const uri = new URL(this.endpoint + '/' + Req.Bucket + '/?tagging');
+        let payload: Record<'Tagging', {
+            TagSet: {
+                Tag: Array<{
+                    Key: string;
+                    Value: string;
+                }>
+            }
+        }> = {
+            Tagging: {
+                TagSet: {
+                    Tag: Req.Tagging.TagSet
+                }
+            }
+        }
+
+        const headers = {
+            'content-type': 'application/xml',
+            ...AWSSignatureV4.replaceNegatif(Req.Headers)
+        }
+
+        return this.awssignaturev4.call('PUT', uri, headers, payload)
+
+    }
 
     async putBucketVersioning(Req: Models.Request.putBucketVersioning) {
         const uri = new URL(this.endpoint + '/' + Req.Bucket + '?versioning');

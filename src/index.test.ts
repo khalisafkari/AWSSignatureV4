@@ -15,6 +15,21 @@ const signature = new AWSSignatureV4(
 
 const s3a = new S3Operations('https://s3.nevaobjects.id', signature);
 
+test('putBucketTagging', async () => {
+    await s3a.putBucketTagging({
+        Bucket: 'khalis',
+        Tagging: {
+            TagSet: [{
+                Key: 'Project',
+                Value: 'Project One'
+            }, {
+                Key: 'Project',
+                Value: 'Project One'
+            }]
+        }
+    })
+})
+
 test('listDirectoryBuckets', async () => {
     const listDirectoryBuckets = await s3a.listDirectoryBuckets({});
     expect(listDirectoryBuckets).toBeObject();
