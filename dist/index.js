@@ -10683,19 +10683,131 @@ class S3Operations {
     };
     return this.awssignaturev4.chunkedUpload("PUT", uri, headers, payload, Req.OnProgress);
   }
-  async putObjectAcl() {
+  async putObjectAcl(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/" + Req.Key + "?acl");
+    if (Req.VersionId !== undefined) {
+      uri.searchParams.append("versionId", Req.VersionId);
+    }
+    let headers = {
+      "content-type": "application/xml",
+      ...AWSSignatureV4_default.replaceNegatif(Req.Headers)
+    };
+    if (Req.ACL !== undefined) {
+      headers["x-amz-acl"] = Req.ACL;
+    }
+    let payload = {
+      AccessControlPolicy: {
+        AccessControlList: {
+          Grant: []
+        }
+      }
+    };
+    if (Req.AccessControlPolicy.Owner !== undefined) {
+      payload.AccessControlPolicy.Owner = Req.AccessControlPolicy.Owner;
+    }
+    if (Req.AccessControlPolicy.Grant !== undefined) {
+      for (const [_, value] of Object.entries(Req.AccessControlPolicy.Grant)) {
+        let pull = {
+          Grantee: {}
+        };
+        for (const key of Object.keys(value)) {
+          const k2 = key;
+          if (key === "Permission") {
+            pull.Permission = value[k2];
+          } else {
+            if (pull.Grantee[key] === undefined) {
+              pull.Grantee[key] = value[k2];
+            }
+          }
+        }
+        payload.AccessControlPolicy.AccessControlList.Grant.push(pull);
+      }
+    }
+    return this.awssignaturev4.call("PUT", uri, headers, payload);
   }
-  async putObjectLegalHold() {
+  async putObjectLegalHold(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/" + Req.Key + "?legal-hold");
+    if (Req.VersionId !== undefined) {
+      uri.searchParams.append("versionId", Req.VersionId);
+    }
+    const payload = {
+      LegalHold: {
+        Status: Req.LegalHold.Status
+      }
+    };
+    const headers = {
+      "content-type": "application/xml",
+      ...AWSSignatureV4_default.replaceNegatif(Req.Headers)
+    };
+    return this.awssignaturev4.call("PUT", uri, headers, payload);
   }
-  async putObjectLockConfiguration() {
+  async putObjectLockConfiguration(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?object-lock");
+    const headers = {
+      "content-type": "application/xml",
+      ...AWSSignatureV4_default.replaceNegatif(Req.Headers)
+    };
+    const payload = {
+      ObjectLockConfiguration: Req.ObjectLockConfiguration
+    };
+    return this.awssignaturev4.call("PUT", uri, headers, payload);
   }
-  async putObjectRetention() {
+  async putObjectRetention(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/" + Req.Key + "?retention");
+    if (Req.VersionId !== undefined) {
+      uri.searchParams.append("versionId", Req.VersionId);
+    }
+    const headers = {
+      "content-type": "application/xml",
+      ...AWSSignatureV4_default.replaceNegatif(Req.Headers)
+    };
+    const payload = {
+      Retention: Req.Retention
+    };
+    return this.awssignaturev4.call("PUT", uri, headers, payload);
   }
-  async putObjectTagging() {
+  async putObjectTagging(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/" + Req.Key + "?tagging");
+    if (Req.VersionId !== undefined) {
+      uri.searchParams.append("versionId", Req.VersionId);
+    }
+    const headers = {
+      "content-type": "application/xml",
+      ...AWSSignatureV4_default.replaceNegatif(Req.Headers)
+    };
+    const payload = {
+      Tagging: {
+        TagSet: {
+          Tag: Req.Tagging
+        }
+      }
+    };
+    return this.awssignaturev4.call("PUT", uri, headers, payload);
   }
-  async putPublicAccessBlock() {
+  async putPublicAccessBlock(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/?publicAccessBlock");
+    const payload = {
+      PublicAccessBlockConfiguration: Req.PublicAccessBlockConfiguration
+    };
+    const headers = {
+      "content-type": "application/xml",
+      ...AWSSignatureV4_default.replaceNegatif(Req.Headers)
+    };
+    return this.awssignaturev4.call("PUT", uri, headers, payload);
   }
-  async restoreObject() {
+  async restoreObject(Req) {
+    const uri = new URL(this.endpoint + "/" + Req.Bucket + "/" + Req.Key + "?restore");
+    if (Req.VersionId !== undefined) {
+      uri.searchParams.append("versionId", Req.VersionId);
+    }
+    const headers = {
+      "content-type": "application/xml",
+      ...AWSSignatureV4_default.replaceNegatif(Req.Headers)
+    };
+    const payload = {
+      RestoreRequest: Req.RestoreRequest
+    };
+    return this.awssignaturev4.call("POST", uri, headers, payload);
   }
   async selectObjectContent(Req) {
     const uri = new URL(this.endpoint + "/" + Req.Bucket + "/" + Req.Key + "?select&select-type=2");
