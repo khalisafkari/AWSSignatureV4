@@ -15,6 +15,23 @@ const signature = new AWSSignatureV4(
 
 const s3a = new S3Operations('https://s3.nevaobjects.id', signature);
 
+
+test('putObjectLockConfiguration', async () => {
+    s3a.putObjectLockConfiguration({
+        Bucket: 'khalis',
+        ObjectLockConfiguration: {
+            ObjectLockEnabled: 'Enabled',
+            Rule: {
+                DefaultRetention: {
+                    Mode: 'COMPLIANCE',
+                    Days: 1,
+                    Years: 2025
+                }
+            }
+        }
+    })
+})
+
 test('putBucketTagging', async () => {
     await s3a.putBucketTagging({
         Bucket: 'khalis',

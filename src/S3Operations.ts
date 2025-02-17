@@ -849,13 +849,283 @@ export class S3Operations {
         return this.awssignaturev4.chunkedUpload('PUT', uri, headers, payload, Req.OnProgress);
     }
 
-    async putObjectAcl() { }
-    async putObjectLegalHold() { }
-    async putObjectLockConfiguration() { }
-    async putObjectRetention() { }
-    async putObjectTagging() { }
-    async putPublicAccessBlock() { }
-    async restoreObject() { }
+    async putObjectAcl(Req: Models.Request.PutObjectAcl) {
+        const uri = new URL(this.endpoint + '/' + Req.Bucket + '/' + Req.Key + '?acl');
+
+        if (Req.VersionId !== undefined) {
+            uri.searchParams.append('versionId', Req.VersionId)
+        }
+
+        let headers: Record<string, any> = {
+            'content-type': 'application/xml',
+            ...AWSSignatureV4.replaceNegatif(Req.Headers)
+        }
+
+        if (Req.ACL !== undefined) {
+            headers['x-amz-acl'] = Req.ACL;
+        }
+
+        let payload: Record<'AccessControlPolicy', {
+            AccessControlList: {
+                Grant: Array<any>
+            };
+            Owner?: {
+                ID?: string;
+                DisplayName?: string;
+            }
+        }> = {
+            AccessControlPolicy: {
+                AccessControlList: {
+                    Grant: []
+                }
+            }
+        }
+
+        if (Req.AccessControlPolicy.Owner !== undefined) {
+            payload.AccessControlPolicy.Owner = Req.AccessControlPolicy.Owner;
+        }
+
+        if (Req.AccessControlPolicy.Grant !== undefined) {
+            for (const [_, value] of Object.entries(Req.AccessControlPolicy.Grant)) {
+                let pull: {
+                    Permission?: string;
+                    Grantee: {
+                        [key: string]: any;
+                    }
+                } = {
+                    Grantee: {}
+                }
+
+                for (const key of Object.keys(value)) {
+                    const k = key as 'Permission' | 'Type' | 'DisplayName' | 'EmailAddress' | 'ID' | 'URI';
+                    if (key === 'Permission') {
+                        pull.Permission = value[k]
+                    } else {
+                        if (pull.Grantee[key] === undefined) {
+                            pull.Grantee[key] = value[k]
+                        }
+                    }
+                }
+                payload.AccessControlPolicy.AccessControlList.Grant.push(pull)
+            }
+        }
+
+        return this.awssignaturev4.call('PUT', uri, headers, payload)
+    }
+
+    async putObjectLegalHold(Req: Models.Request.PutObjectLegalHold) {
+        const uri = new URL(this.endpoint + '/' + Req.Bucket + '/' + Req.Key + '?legal-hold');
+
+        if (Req.VersionId !== undefined) {
+            uri.searchParams.append('versionId', Req.VersionId);
+        }
+
+        const payload: Record<'LegalHold', {
+            Status?: 'ON' | 'OFF'; 
+        }> = {
+            LegalHold: {
+                Status: Req.LegalHold.Status
+            }
+        }
+
+        const headers = {
+            'content-type': 'application/xml',
+            ...AWSSignatureV4.replaceNegatif(Req.Headers)
+        }
+
+        return this.awssignaturev4.call('PUT', uri, headers, payload)
+    }
+
+    async putObjectLockConfiguration(Req: Models.Request.PutObjectLockConfiguration) {
+        const uri = new URL(this.endpoint + '/' + Req.Bucket + '/?object-lock');
+        const headers = {
+            'content-type': 'application/xml',
+            ...AWSSignatureV4.replaceNegatif(Req.Headers)
+        }
+        const payload: Record<'ObjectLockConfiguration', {
+            ObjectLockEnabled: "Enabled";
+                Rule?: {
+                    DefaultRetention?: {
+                        Mode: "GOVERNANCE" | "COMPLIANCE";
+                        Days?: number;
+                        Years?: number;
+                    };
+                };
+        }> = {
+            ObjectLockConfiguration: Req.ObjectLockConfiguration
+        }
+
+        return this.awssignaturev4.call('PUT', uri, headers, payload);
+    }
+
+    async putObjectRetention(Req: Models.Request.PutObjectRetention) {
+        const uri = new URL(this.endpoint + '/' + Req.Bucket + '/' + Req.Key + '?retention');
+        
+        if (Req.VersionId !== undefined) {
+            uri.searchParams.append('versionId', Req.VersionId);
+        }
+
+        const headers: Record<string, any> = {
+            'content-type': 'application/xml',
+            ...AWSSignatureV4.replaceNegatif(Req.Headers)
+        }
+
+        const payload: Record<'Retention', {
+            Mode?: "GOVERNANCE" | "COMPLIANCE";
+            RetainUntilDate?: string;
+        }> = {
+            Retention: Req.Retention
+        }
+
+        return this.awssignaturev4.call('PUT', uri, headers, payload)
+
+    }
+
+    async putObjectTagging(Req: Models.Request.PutObjectTagging) {
+        const uri = new URL(this.endpoint + '/' + Req.Bucket + '/' + Req.Key + '?tagging');
+        
+        if (Req.VersionId !== undefined) {
+            uri.searchParams.append('versionId', Req.VersionId);
+        }
+
+        const headers: Record<string, any> = {
+            'content-type': 'application/xml',
+            ...AWSSignatureV4.replaceNegatif(Req.Headers)
+        }
+
+        const payload: Record<'Tagging', {
+            TagSet: {
+                Tag: Array<{
+                  Key: string;
+                  Value: string;  
+                }>
+            }
+        }> = {
+            Tagging: {
+                TagSet: {
+                    Tag: Req.Tagging
+                }
+            }
+        }
+
+        return this.awssignaturev4.call('PUT', uri, headers, payload)
+
+    }
+
+    async putPublicAccessBlock(Req: Models.Request.PutPublicAccessBlock) {
+        const uri = new URL(this.endpoint + '/' + Req.Bucket + '/?publicAccessBlock');
+
+        const payload: Record<'PublicAccessBlockConfiguration', {
+            BlockPublicAcls?: boolean;
+            IgnorePublicAcls?: boolean;
+            BlockPublicPolicy?: boolean;
+            RestrictPublicBuckets?: boolean;
+        }> = {
+            PublicAccessBlockConfiguration: Req.PublicAccessBlockConfiguration
+        };
+
+        const headers = {
+            'content-type': 'application/xml',
+            ...AWSSignatureV4.replaceNegatif(Req.Headers)
+        }
+
+        return this.awssignaturev4.call('PUT', uri, headers, payload)
+    }
+
+    async restoreObject(Req: Models.Request.RestoreObject) {
+        const uri = new URL(this.endpoint + '/' + Req.Bucket + '/' + Req.Key + '?restore');
+
+        if (Req.VersionId !== undefined) {
+            uri.searchParams.append('versionId', Req.VersionId);
+        }
+
+        const headers: Record<string, any> = {
+            'content-type': 'application/xml',
+            ...AWSSignatureV4.replaceNegatif(Req.Headers),
+        }
+
+        const payload: Record<'RestoreRequest', {
+            Days?: number;
+            GlacierJobParameters?: { Tier: 'Standard' | 'Bulk' | 'Expedited' }
+            Type?: 'SELECT'
+            Tier?: 'Standard' | 'Bulk' | 'Expedited'
+            Description?: string;
+            SelectParameters?: {
+                Expression: string;
+                ExpressionType: 'SQL';
+                InputSerialization?: {
+                    CompressionType?: 'NONE' | 'GZIP' | 'BZIP2'
+                    CSV?: {
+                        AllowQuotedRecordDelimiter?: boolean;
+                        Comments?: string;
+                        FieldDelimiter?: string;
+                        FileHeaderInfo?: 'USE' | 'IGNORE' | 'NONE';
+                        QuoteCharacter?: string;
+                        QuoteEscapeCharacter?: string;
+                        RecordDelimiter?: string;
+                    };
+                    JSON?: {
+                        Type?: 'DOCUMENT' | 'LINES'
+                    }
+                    Parquet: {}
+                };
+                OutputSerialization?: {
+                    CSV?: {
+                        FieldDelimiter?: string;
+                        QuoteCharacter?: string;
+                        QuoteEscapeCharacter?: string;
+                        QuoteFields?: 'ALWAYS' | 'ASNEEDED';
+                        RecordDelimiter?: string;
+                    };
+                    JSON?: {
+                        RecordDelimiter?: string;
+                    }
+                }
+            }
+            OutputLocation?: {
+                S3?: {
+                    BucketName: string;
+                    Prefix: string;
+                    AccessControlList: {
+                        Grant?: Array<{
+                            Grantee?: {
+                                Type: 'CanonicalUser' | 'AmazonCustomerByEmail' | 'Group';
+                                DisplayName?: string;
+                                EmailAddress?: string;
+                                ID?: string;
+                                URI?: string;
+                            };
+                            Permission?: 'FULL_CONTROL' | 'WRITE' | 'WRITE_ACP' | 'READ' | 'READ_ACP'
+                        }>
+                    }
+                    CannedACL?: 'private' | 'public-read'| 'public-read-write' | 'authenticated-read' | 'aws-exec-read' | 'bucket-owner-read' | 'bucket-owner-full-control';
+                    Encryption?: {
+                        EncryptionType: 'AES256' | 'aws:kms' | 'aws:kms:dsse';
+                        KMSContext?: string;
+                        KMSKeyId?: string;
+                    }
+                    StorageClass?: 'STANDARD' | 'REDUCED_REDUNDANCY' | 'STANDARD_IA' | 'ONEZONE_IA' | 'INTELLIGENT_TIERING' | 'GLACIER' | 'DEEP_ARCHIVE' | 'OUTPOSTS' | 'GLACIER_IR' | 'SNOW' | 'EXPRESS_ONEZONE';
+                    Tagging?: {
+                        TagSet: {
+                            Tag: Array<{
+                                Key: string;
+                                Value: string;
+                            }>
+                        }
+                    }
+                    UserMetadata?: {
+                        Name?: string;
+                        Value?: string;
+                    }
+                }
+            }
+        }> = {
+            RestoreRequest: Req.RestoreRequest
+        }
+
+        return this.awssignaturev4.call('POST', uri, headers, payload)
+
+    }    
 
     async selectObjectContent(Req: Models.Request.selectObjectContent) {
         const uri = new URL(this.endpoint + '/' + Req.Bucket + '/' + Req.Key + '?select&select-type=2');

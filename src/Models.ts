@@ -1643,6 +1643,220 @@ export namespace Models {
             Headers?: Record<string, string>;
         }
 
+        /**
+         * Interface for setting the ACL (Access Control List) of an object using Amazon S3 PutObjectAcl API.
+         * 
+         * Reference: https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObjectAcl.html
+         */
+        export interface PutObjectAcl {
+            /**
+             * The name of the bucket containing the object.
+             */
+            Bucket: string;
+            
+            /**
+             * The key of the object for which to set the ACL.
+             */
+            Key: string;
+            
+            /**
+             * The ACL permissions to apply.
+             */
+            ACL?: string;
+
+            /**
+             * The VersionId to apply
+             */
+            VersionId?: string;
+
+            AccessControlPolicy: {
+                Owner?: {
+                    ID?: string;
+                    DisplayName?: string;
+                },
+                Grant?: Array<{
+                    Permission?: 'FULL_CONTROL' | 'WRITE' | 'WRITE_ACP' | 'READ' | 'READ_ACP',
+                    Type: 'CanonicalUser' | 'AmazonCustomerByEmail' | 'Group',
+                    DisplayName?: string;
+                    EmailAddress?: string;
+                    ID?: string;
+                    URI?: string;
+                }>
+            };
+            
+            /**
+             * Additional headers that can be sent in the request.
+             */
+            Headers?: Record<string, string>;
+        }
+
+        /**
+         * Interface for setting the legal hold status of an object using Amazon S3 PutObjectLegalHold API.
+         * 
+         * Reference: https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObjectLegalHold.html
+         */
+        export interface PutObjectLegalHold {
+            Bucket: string;
+            Key: string;
+            LegalHold: { Status: "ON" | "OFF" };
+            VersionId?: string;
+            Headers?: Record<string, string>;
+        }
+
+        /**
+         * Interface for configuring object lock settings using Amazon S3 PutObjectLockConfiguration API.
+         * 
+         * Reference: https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObjectLockConfiguration.html
+         */
+        export interface PutObjectLockConfiguration {
+            Bucket: string;
+            ObjectLockConfiguration: {
+                ObjectLockEnabled: "Enabled";
+                Rule?: {
+                    DefaultRetention?: {
+                        Mode: "GOVERNANCE" | "COMPLIANCE";
+                        Days?: number;
+                        Years?: number;
+                    };
+                };
+            };
+            Headers?: Record<string, string>;
+        }
+
+        /**
+         * Interface for setting object retention using Amazon S3 PutObjectRetention API.
+         * 
+         * Reference: https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObjectRetention.html
+         */
+        export interface PutObjectRetention {
+            Bucket: string;
+            Key: string;
+            Retention: {
+                Mode: "GOVERNANCE" | "COMPLIANCE";
+                RetainUntilDate: string;
+            };
+            VersionId?: string;
+            Headers?: Record<string, string>;
+        }
+
+        /**
+         * Interface for setting object tagging using Amazon S3 PutObjectTagging API.
+         * 
+         * Reference: https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObjectTagging.html
+         */
+        export interface PutObjectTagging {
+            Bucket: string;
+            Key: string;
+            Tagging:Array<{ Key: string; Value: string; }>;
+            VersionId?: string;
+            Headers?: Record<string, string>;
+        }
+
+        /**
+         * Interface for setting public access block configurations using Amazon S3 PutPublicAccessBlock API.
+         * 
+         * Reference: https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutPublicAccessBlock.html
+         */
+        export interface PutPublicAccessBlock {
+            Bucket: string;
+            PublicAccessBlockConfiguration: {
+                BlockPublicAcls?: boolean;
+                IgnorePublicAcls?: boolean;
+                BlockPublicPolicy?: boolean;
+                RestrictPublicBuckets?: boolean;
+            };
+            Headers?: Record<string, string>;
+        }
+
+        /**
+         * Interface for restoring an archived object using Amazon S3 RestoreObject API.
+         * 
+         * Reference: https://docs.aws.amazon.com/AmazonS3/latest/API/API_RestoreObject.html
+         */
+        export interface RestoreObject {
+            Bucket: string;
+            Key: string;
+            VersionId?: string;
+            RestoreRequest: {
+                Days?: number;
+                GlacierJobParameters?: { Tier: 'Standard' | 'Bulk' | 'Expedited' }
+                Type?: 'SELECT'
+                Tier?: 'Standard' | 'Bulk' | 'Expedited'
+                Description?: string;
+                SelectParameters?: {
+                    Expression: string;
+                    ExpressionType: 'SQL';
+                    InputSerialization?: {
+                        CompressionType?: 'NONE' | 'GZIP' | 'BZIP2'
+                        CSV?: {
+                            AllowQuotedRecordDelimiter?: boolean;
+                            Comments?: string;
+                            FieldDelimiter?: string;
+                            FileHeaderInfo?: 'USE' | 'IGNORE' | 'NONE';
+                            QuoteCharacter?: string;
+                            QuoteEscapeCharacter?: string;
+                            RecordDelimiter?: string;
+                        };
+                        JSON?: {
+                            Type?: 'DOCUMENT' | 'LINES'
+                        }
+                        Parquet: {}
+                    };
+                    OutputSerialization?: {
+                        CSV?: {
+                            FieldDelimiter?: string;
+                            QuoteCharacter?: string;
+                            QuoteEscapeCharacter?: string;
+                            QuoteFields?: 'ALWAYS' | 'ASNEEDED';
+                            RecordDelimiter?: string;
+                        };
+                        JSON?: {
+                            RecordDelimiter?: string;
+                        }
+                    }
+                }
+                OutputLocation?: {
+                    S3?: {
+                        BucketName: string;
+                        Prefix: string;
+                        AccessControlList: {
+                            Grant?: Array<{
+                                Grantee?: {
+                                    Type: 'CanonicalUser' | 'AmazonCustomerByEmail' | 'Group';
+                                    DisplayName?: string;
+                                    EmailAddress?: string;
+                                    ID?: string;
+                                    URI?: string;
+                                };
+                                Permission?: 'FULL_CONTROL' | 'WRITE' | 'WRITE_ACP' | 'READ' | 'READ_ACP'
+                            }>
+                        }
+                        CannedACL?: 'private' | 'public-read'| 'public-read-write' | 'authenticated-read' | 'aws-exec-read' | 'bucket-owner-read' | 'bucket-owner-full-control';
+                        Encryption?: {
+                            EncryptionType: 'AES256' | 'aws:kms' | 'aws:kms:dsse';
+                            KMSContext?: string;
+                            KMSKeyId?: string;
+                        }
+                        StorageClass?: 'STANDARD' | 'REDUCED_REDUNDANCY' | 'STANDARD_IA' | 'ONEZONE_IA' | 'INTELLIGENT_TIERING' | 'GLACIER' | 'DEEP_ARCHIVE' | 'OUTPOSTS' | 'GLACIER_IR' | 'SNOW' | 'EXPRESS_ONEZONE';
+                        Tagging?: {
+                            TagSet: {
+                                Tag: Array<{
+                                    Key: string;
+                                    Value: string;
+                                }>
+                            }
+                        }
+                        UserMetadata?: {
+                            Name?: string;
+                            Value?: string;
+                        }
+                    }
+                }
+            };
+            Headers?: Record<string, string>;
+        }
+
+
 
 
         /**
